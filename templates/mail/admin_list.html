@@ -1,0 +1,14 @@
+{% extends "backend/list.html" %}
+{% block layout_header %}{% endblock %}
+{% block layout_before_content %}
+<div class="ibox-content m-b-sm border-bottom">
+    <div class="p-xs">
+        <div class="pull-left m-r-md">
+            <i class="material-icons mid-icon brand-text-color">mail</i>
+        </div>
+        <h2>郵件寄送樣版</h2>
+        設定網站在寄送郵件時所使用的文本樣版。 <a href="{{ uri("admin:mail:mail:reset_mail_list") }}" target="aside_iframe">重置所有的樣版</a>
+        {% if last_record_date %}<span class="text-muted small pull-right visible-sm visible-md visible-lg">最後更新：<i class="icon">access_time</i> {{ print_value(last_record_date) }}</span>{% endif %}
+    </div>
+</div>
+{% endblock %}
