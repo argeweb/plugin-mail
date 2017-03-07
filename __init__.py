@@ -32,7 +32,7 @@ plugins_helper = {
         'mail_config': {
             'group': u'郵件設定',
             'actions': [
-                {'action': 'config', 'name': u'郵件寄送設定'},
+                {'action': 'config', 'name': u'郵件相關設定'},
             ]
         },
     }

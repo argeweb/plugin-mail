@@ -21,7 +21,7 @@ class Mail(Controller):
         hidden_in_form = ['name']
         excluded_in_form = ()
 
-    @route_menu(list_name=u'backend', text=u'郵件寄送樣版', sort=9941, group=u'系統設定', need_hr=True)
+    @route_menu(list_name=u'backend', text=u'郵件寄送樣版', sort=701, group=u'互動項目', need_hr=True)
     def admin_list(self):
         return scaffold.list(self)
 

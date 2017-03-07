@@ -15,14 +15,14 @@ from google.appengine.api import app_identity
 class MailConfig(Controller):
     class Meta:
         components = (scaffold.Scaffolding, Pagination, Search)
-        pagination_limit = 10
+        pagination_limit = 50
 
     class Scaffold:
         display_in_list = ('is_enable', 'category')
         hidden_in_form = ('name', 'title', 'use')
 
     @route
-    @route_menu(list_name=u'backend', text=u'郵件寄送設定', sort=9942, group=u'系統設定')
+    @route_menu(list_name=u'backend', text=u'郵件相關設定', sort=702, group=u'互動項目')
     def admin_config(self):
         self.context['application_id'] = app_identity.get_application_id()
         record = self.meta.Model.find_by_name(self.namespace)
