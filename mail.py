@@ -26,13 +26,15 @@ class Mail(object):
 
     def send(self, send_to, subject, content=None):
         message = u''
+        if send_to is None:
+            send_to = u",".join([self.config.system_recipient_1, self.config.system_recipient_2, self.config.system_recipient_3, self.config.system_recipient_4])
         if self.config.use == 0:
             message = Mail.send_by_google_app_engine(send_to, subject, content, self.config)
         if self.config.use == 1:
             message = Mail.send_by_mail_gun(send_to, subject, content, self.config)
         return {'status': 'success', 'message': message}
 
-    def send_width_template(self, template_name, send_to, data=None):
+    def send_width_template(self, template_name, send_to=None, data=None):
         from jinja2 import Template
         from models.mail_model import MailModel
         t = MailModel.find_by_name(template_name)
