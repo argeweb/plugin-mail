@@ -14,7 +14,7 @@ class MailConfigModel(BasicModel):
     class Meta:
         tab_pages = [u'系統收件人', u'Google App Engine', u'MailGun', u'SendGrid', u'other']
 
-    name = Fields.StringProperty(verbose_name=u'系統編號')
+    name = Fields.StringProperty(verbose_name=u'識別名稱')
     title = Fields.StringProperty(default=u'Google App Engine', verbose_name=u'服務名稱')
     use = Fields.IntegerProperty(default=0, verbose_name=u'服務類型')
 

@@ -12,7 +12,7 @@ from argeweb import Fields
 
 
 class MailModel(BasicModel):
-    name = Fields.StringProperty(verbose_name=u'系統編號')
+    name = Fields.StringProperty(verbose_name=u'識別名稱')
     title = Fields.StringProperty(verbose_name=u'樣版名稱')
     mail_title = Fields.StringProperty(verbose_name=u'信件標題')
     mail_content = Fields.RichTextProperty(verbose_name=u'信件內容')
