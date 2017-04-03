@@ -30,13 +30,3 @@ class MailConfigModel(BasicModel):
     mg_sender_name = Fields.StringProperty(default=u'王小華', verbose_name=u'寄件者名稱', tab_page=2)
     mg_domain = Fields.StringProperty(default=u'domain.com', verbose_name=u'網域名稱', tab_page=2)
     mg_api_key = Fields.StringProperty(default=u'key-as23XVCBDfg43sfgs', verbose_name=u'Api Key', tab_page=2)
-
-
-    @classmethod
-    def find_or_create_by_name(cls, name):
-        item = cls.find_by_name(name)
-        if item is None:
-            item = cls()
-            item.name = name
-            item.put()
-        return item
