@@ -27,6 +27,7 @@ plugins_helper = {
                 {'action': 'edit', 'name': u'編輯樣版'},
                 {'action': 'view', 'name': u'檢視樣版'},
                 {'action': 'delete', 'name': u'刪除樣版'},
+                {'action': 'plugins_check', 'name': u'啟用停用模組'},
             ]
         },
         'mail_config': {
