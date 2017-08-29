@@ -23,7 +23,7 @@ class MailModel(BasicModel):
 
     @classmethod
     def replace_context(cls, name, title=None, mail_title=None, mail_content=None):
-        record = cls.get_or_create(name)
+        record = cls.get_or_create_by_name(name)
         record.name = name
         if title:
             record.title = title
@@ -33,12 +33,4 @@ class MailModel(BasicModel):
             record.mail_content = mail_content
         record.put()
 
-    @classmethod
-    def get_or_create(cls, name):
-        record = cls.query(cls.name==name).get()
-        if record is None:
-            record = cls()
-            record.name = name
-        record.put()
-        return record
 

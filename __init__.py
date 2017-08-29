@@ -7,13 +7,26 @@
 # Date: 2017/2/23.
 
 from argeweb import ViewDatastore
-from mail import Mail, MailConfigModel
+from mail import Mail, ConfigModel
+from argeweb.core.events import on
 
 
 __all__ = (
     'Mail'
-    'MailConfigModel'
+    'ConfigModel'
 )
+
+
+@on('send_mail_width_template')
+def send_mail_width_template(controller, template_name, send_to=None, data=None):
+    m = Mail(controller)
+    m.send_width_template(template_name=template_name, send_to=send_to, data=data)
+
+
+@on('registry_mail_template')
+def registry_mail_template(controller, template_name, send_to=None, data=None):
+    m = Mail(controller)
+    m.send_width_template(template_name=template_name, send_to=send_to, data=data)
 
 plugins_helper = {
     'title': u'郵件樣版與寄送設定',
@@ -30,11 +43,12 @@ plugins_helper = {
                 {'action': 'plugins_check', 'name': u'啟用停用模組'},
             ]
         },
-        'mail_config': {
+        'config': {
             'group': u'郵件設定',
             'actions': [
                 {'action': 'config', 'name': u'郵件相關設定'},
             ]
         },
-    }
+    },
+    'install_uri': 'mail:config:after_install'
 }
