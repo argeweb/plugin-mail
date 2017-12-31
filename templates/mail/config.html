@@ -11,16 +11,8 @@
                 <option value="0">Google App Engine</option>
                 <option value="1">Mail Gun</option>
             </select>。
-        {% if last_record_date %}<span class="text-muted small pull-right visible-sm visible-md visible-lg">最後更新：<i class="icon">access_time</i> {{ print_value(last_record_date) }}</span>{% endif %}
     </div>
 </div>
-{% endblock %}
-
-{% block page_helper %}
-<ul>
-    <li>Google App Engine 每日可寄送 100 封(收件人)，需至 <a href="https://console.cloud.google.com/appengine/settings?project={{ application_id }}" target="_blank">Google Cloud</a> 設定為 Email API 授權的寄件者。</li>
-    <li>Mial Gun 每月可免費寄送 10,000 封信件，請至 <a href="https://www.mailgun.com/" target="_blank">Mial Gun</a> 申請相關 Api Key。</li>
-</ul>
 {% endblock %}
 
 {% block page_scripts %}

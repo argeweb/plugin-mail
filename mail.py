@@ -6,50 +6,61 @@
 # Web: http://www.yooliang.com/
 # Date: 2017/2/23
 from google.appengine.api.mail_errors import InvalidSenderError
+from jinja2 import TemplateSyntaxError, UndefinedError
 
 from models.config_model import ConfigModel
 from google.appengine.api import app_identity
 import weakref
+
 
 class Mail(object):
     _namespace = None
     _config = None
 
     def __init__(self, controller):
-        self._config = weakref.proxy(ConfigModel.get_by_name('mail_config'))
+        self._config = weakref.proxy(ConfigModel.get_config())
 
     @property
     def config(self):
         if self._config is None:
-            self._config = weakref.proxy(ConfigModel.get_by_name('mail_config'))
+            self._config = weakref.proxy(ConfigModel.get_config())
         return self._config
 
-    def send(self, send_to, subject, content=None):
-        message = u''
-        if send_to is None:
+    def send(self, send_to, subject, content=None, cc=''):
+        if send_to is 'admin':
             send_to = u",".join([self.config.system_recipient_1, self.config.system_recipient_2, self.config.system_recipient_3, self.config.system_recipient_4])
-        if self.config.use == 0:
-            message = self.send_by_google_app_engine(send_to, subject, content)
-        if self.config.use == 1:
-            message = self.send_by_mail_gun(send_to, subject, content)
-        return {'status': 'success', 'message': message}
+        try:
+            if self.config.use == 0:
+                return self.send_by_google_app_engine(send_to, subject, content, cc)
+            if self.config.use == 1:
+                return self.send_by_mail_gun(send_to, subject, content, cc)
+        except Exception as e:
+            return {'status': 'failure', 'message': str(e)}
 
-    def send_width_template(self, template_name, send_to=None, data=None):
+    def send_width_template(self, template=None, template_name=None, send_to=None, data=None):
         from jinja2 import Template
         from models.mail_model import MailModel
-        t = MailModel.get_by_name(template_name)
-        if t is None:
+        if template is None and template_name and isinstance(template_name, str):
+            template = MailModel.get_by_name(template_name)
+        if template is None:
             return {'status': 'failure', 'message': u'郵件樣板不存在，無法寄送'}
-        subject = Template(t.mail_title).render(data)
-        html = Template(t.mail_content).render(data)
-        return self.send(send_to, subject, html)
+        try:
+            subject = Template(template.mail_title).render(data)
+            html = Template(template.mail_content).render(data)
+            return self.send(send_to, subject, html)
+        except Exception as e:
+            import logging
+            logging.error(template.mail_title, str(e))
+            return {'status': 'failure', 'message': u'郵件樣板設定錯誤，無法寄送'}
 
-    def send_by_google_app_engine(self, send_to, subject, html):
+    def send_by_google_app_engine(self, send_to, subject, html, cc):
         from google.appengine.api import mail
         sender = self.config.gae_sender_mail
         if not sender:
             sender = 'noreply@%s.appspotmail.com' % app_identity.get_application_id()
 
+        import logging
+        logging.info(html)
         try:
             res = mail.send_mail(
                 sender=sender,
@@ -58,11 +69,13 @@ class Mail(object):
                 body='',
                 html=html,
             )
-            return res
-        except InvalidSenderError:
-            pass
+            return {'status': 'success', 'message': u'信件已寄出'}
+        except InvalidSenderError as e:
+            return {'status': 'failure', 'message': str(e)}
+        except:
+            return {'status': 'failure', 'message': u'寄送失敗'}
 
-    def send_by_mail_gun(self, send_to, subject, html, config):
+    def send_by_mail_gun(self, send_to, subject, html, cc):
         import httplib2
         from urllib import urlencode
 
@@ -70,16 +83,22 @@ class Mail(object):
         http.add_credentials('api', self.config.mg_api_key)
 
         url = 'https://api.mailgun.net/v3/{}/messages'.format(self.config.mg_domain)
+        import logging
+        logging.info(html)
+
         data = {
             'from': u'{} <{}>'.format(self.config.mg_sender_name, self.config.mg_sender_mail).encode('utf-8'),
             'to': send_to.encode('utf-8'),
             'subject': subject.encode('utf-8'),
             'html': html.encode('utf-8')
         }
+        if cc and cc is not u'':
+            data['cc'] = cc
 
         resp, content = http.request(
             url, 'POST', urlencode(data),
             headers={"Content-Type": "application/x-www-form-urlencoded"})
 
         if resp.status != 200:
-            return 'Mailgun API error: {} {}'.format(resp.status, content)
+            return {'status': 'failure', 'message': 'Mailgun API error: {} {}'.format(resp.status, content)}
+        return {'status': 'success', 'message': u'信件已寄出'}
