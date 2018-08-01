@@ -24,17 +24,20 @@ class MailModel(BasicModel):
         'after_user_verified_both',
         'user_request_verified_email',
         'user_request_email_reset',
+        'other',
     ], choices_text={
         'after_user_signup': u'使用者註冊後',
         'after_order_checkout': u'訂單建立後',
-        'after_user_verified_email': u'使用者驗証手機後',
+        'after_user_verified_email': u'使用者驗証信箱後',
         'after_user_verified_mobile': u'使用者驗証手機後',
         'after_user_verified_both': u'使用者驗証信箱、手機後',
         'user_request_verified_email': u'使用者請求驗証信箱',
         'user_request_email_reset': u'使用者請求重設密碼',
+        'other': u'由其它程序處理',
     })
     is_enable = Fields.BooleanProperty(verbose_name=u'啟用觸發', default=True)
     send_to_admin = Fields.BooleanProperty(verbose_name=u'寄送給管理者', default=False)
+    other_event = Fields.StringProperty(verbose_name=u'其它觸發時機名稱', default=u'')
 
     @classmethod
     def replace_context(cls, name, touch_event=None, title=None, mail_title=None, mail_content=None):

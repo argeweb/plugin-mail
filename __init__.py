@@ -31,6 +31,16 @@ plugins_helper = {
                 {'action': 'plugins_check', 'name': u'啟用停用模組'},
             ]
         },
+        'mail_record': {
+            'group': u'郵件發送記錄',
+            'actions': [
+                {'action': 'list', 'name': u'郵件發送記錄'},
+                {'action': 'add', 'name': u'新增郵件發送記錄'},
+                {'action': 'edit', 'name': u'編輯郵件發送記錄'},
+                {'action': 'view', 'name': u'檢視郵件發送記錄'},
+                {'action': 'delete', 'name': u'刪除郵件發送記錄'},
+            ]
+        },
         'config': {
             'group': u'郵件設定',
             'actions': [
@@ -54,9 +64,26 @@ def send_mail(controller, subject=None, content=None, send_to=None, *args, **kwa
 
 
 @on('registry_mail_template')
-def registry_mail_template(controller, template_name, send_to=None, data=None, *args, **kwargs):
-    m = Mail(controller)
-    return m.send_width_template(template_name=template_name, send_to=send_to, data=data)
+def registry_mail_template(controller, template_name, touch_event=None, title=None, mail_title=None, mail_content=None,
+                           is_enable=True, send_to_admin=False, *args, **kwargs):
+        record = MailModel.get_or_create_by_name(template_name)
+        record.name = template_name
+        if title:
+            record.title = title
+        if mail_title:
+            record.mail_title = mail_title
+        if mail_content:
+            record.mail_content = mail_content
+        if touch_event:
+            record.touch_event = touch_event
+        record.is_enable = is_enable
+        record.send_to_admin = send_to_admin
+        record.put()
+        return {
+            'record': record.name,
+            'message': u'Mail Template %s is created' % template_name,
+            'status': u'success'
+        }
 
 
 @on('user_request_email_reset')
@@ -118,28 +145,16 @@ def event_check(controller, *args, **kwargs):
         'domain': controller.host_information.host,
     })
     send_to = None
-    if 'user' in kwargs:
+    if 'user' in kwargs and kwargs['user'] is not None:
         send_to = kwargs['user'].email
     if 'send_to' in kwargs:
         send_to = kwargs['send_to']
 
     for template in templates:
-        if template.is_enable:
-            if template.send_to_admin:
-                send_to_real = 'admin'
-            else:
-                send_to_real = send_to
-            if send_to_real:
-                a = m.send_width_template(template=template, send_to=send_to_real, data=kwargs)
-                return_msg.append({
-                    'mail': template.name,
-                    'message': a['message'],
-                    'status': a['status']
-                })
-            else:
-                return_msg.append({
-                    'mail': template.name,
-                    'message': 'no send_to data',
-                    'status': 'failure'
-                })
+        a = m.send_width_template(template=template, send_to=send_to, data=kwargs)
+        return_msg.append({
+            'mail': template.name,
+            'message': a['message'],
+            'status': a['status']
+        })
     return return_msg

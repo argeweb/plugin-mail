@@ -17,8 +17,11 @@ class Mail(object):
     _namespace = None
     _config = None
 
-    def __init__(self, controller):
-        self._config = weakref.proxy(ConfigModel.get_config())
+    def __init__(self, controller=None, config=None):
+        if config is None:
+            self._config = weakref.proxy(ConfigModel.get_config())
+        else:
+            self._config = config
 
     @property
     def config(self):
@@ -43,15 +46,25 @@ class Mail(object):
         if template is None and template_name and isinstance(template_name, str):
             template = MailModel.get_by_name(template_name)
         if template is None:
-            return {'status': 'failure', 'message': u'郵件樣板不存在，無法寄送'}
+            return {'status': 'failure', 'message': u'郵件樣板不存在，無法寄送 (not exist)'}
+        if template.is_enable:
+            if template.send_to_admin:
+                send_to_real = 'admin'
+            else:
+                send_to_real = send_to
+        else:
+            return {'status': 'failure', 'message': u'郵件樣板未啟用，無法寄送 (disable)'}
+        if send_to_real is None:
+            return {'status': 'failure', 'message': u'缺少寄送的目標，無法寄送 (not target)'}
         try:
             subject = Template(template.mail_title).render(data)
             html = Template(template.mail_content).render(data)
-            return self.send(send_to, subject, html)
+            return self.send(send_to_real, subject, html)
         except Exception as e:
             import logging
-            logging.error(template.mail_title, str(e))
-            return {'status': 'failure', 'message': u'郵件樣板設定錯誤，無法寄送'}
+            logging.error(template.mail_title)
+            logging.error(str(e))
+            return {'status': 'failure', 'message': u'郵件樣板設定錯誤，無法寄送 (config error)'}
 
     def send_by_google_app_engine(self, send_to, subject, html, cc):
         from google.appengine.api import mail
@@ -69,6 +82,14 @@ class Mail(object):
                 body='',
                 html=html,
             )
+            from .models.mail_record_model import MailRecordModel
+            mr = MailRecordModel()
+            mr.title = subject
+            mr.send_to = send_to
+            mr.content = html
+            mr.sender = sender
+            mr.send_system = 'Google App Engine'
+            mr.put()
             return {'status': 'success', 'message': u'信件已寄出'}
         except InvalidSenderError as e:
             return {'status': 'failure', 'message': str(e)}
